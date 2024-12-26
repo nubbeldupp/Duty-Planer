@@ -1,7 +1,7 @@
 <?php
 namespace OnCallDutyPlanner\Classes;
 
-use OnCallDutyPlanner\Config\DatabaseConnection;
+use OnCallDutyPlanner\Database\DatabaseConnection;
 use Exception;
 use PDO;
 use PDOException;

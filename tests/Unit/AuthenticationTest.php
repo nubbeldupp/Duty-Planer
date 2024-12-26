@@ -10,7 +10,7 @@ class AuthenticationTest extends TestCase {
 
     protected function setUp(): void {
         parent::setUp();
-        $this->auth = new Authentication();
+        $this->auth = new \OnCallDutyPlanner\Classes\Authentication();
         $this->resetDatabase();
     }
 
