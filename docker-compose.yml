@@ -43,7 +43,7 @@ services:
     image: fradelg/mysql-cron-backup
     restart: always
     volumes:
-      - /var/opt/mysqlbackups:/backups
+      - /mnt/datadisk/backup:/backups
     depends_on:
       - database
     environment:
