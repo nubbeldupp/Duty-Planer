@@ -1,7 +1,7 @@
 <?php
-require_once __DIR__ . '/../classes/Authentication.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-$auth = new Authentication();
+$auth = new \OnCallDutyPlanner\Classes\Authentication();
 session_start();
 
 // Check if user is logged in

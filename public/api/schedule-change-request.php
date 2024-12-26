@@ -1,47 +1,27 @@
 <?php
-namespace OnCallDutyPlanner\Scheduling;
+namespace OnCallDutyPlanner\API;
 
-class ScheduleManager {
-    // Core Methods
-    public function createSchedule(array $scheduleData)
-    // Validates and creates a new on-call schedule
+use OnCallDutyPlanner\Classes\Authentication;
+use OnCallDutyPlanner\Database\DatabaseConnection;
+use OnCallDutyPlanner\Scheduling\ScheduleManager;
+use OnCallDutyPlanner\Services\EmailService;
+use Exception;
+use PDO;
+use PDOException;
 
-    public function updateSchedule(int $scheduleId, array $updateData)
-    // Updates an existing schedule with validation
-
-    public function deleteSchedule(int $scheduleId)
-    // Removes a schedule with permission checks
-
-    // Advanced Methods
-    public function checkScheduleConflicts(int $userId, \DateTime $startTime, \DateTime $endTime)
-    // Checks for overlapping schedules for a user
-
-    public function generateTeamScheduleReport(int $teamId, \DateTime $startPeriod, \DateTime $endPeriod)
-    // Creates a comprehensive schedule report for a team
-
-    // Validation Methods
-    private function validateScheduleCreation(array $scheduleData)
-    // Validates schedule data before creation
-
-    private function validateScheduleUpdate(array $updateData)
-    // Validates schedule update data
-
-    // Permissions Methods
-    private function checkUserSchedulePermissions(int $userId, int $scheduleId)
-    // Checks if user has permission to modify a schedule
-}<?php
 header('Content-Type: application/json');
-
-require_once __DIR__ . '/../../classes/Authentication.php';
-require_once __DIR__ . '/../../config/database.php';
 
 class ScheduleChangeRequestAPI {
     private $db;
     private $auth;
+    private $scheduleManager;
+    private $emailService;
 
     public function __construct() {
         $this->db = new DatabaseConnection();
         $this->auth = new Authentication();
+        $this->emailService = new EmailService();
+        $this->scheduleManager = new ScheduleManager($this->db, $this->emailService);
     }
 
     public function handleRequest() {
@@ -53,9 +33,9 @@ class ScheduleChangeRequestAPI {
             exit;
         }
 
-        // Get request method
+        // Determine request method
         $method = $_SERVER['REQUEST_METHOD'];
-
+        
         switch ($method) {
             case 'POST':
                 $this->createChangeRequest();
@@ -69,6 +49,7 @@ class ScheduleChangeRequestAPI {
             default:
                 http_response_code(405);
                 echo json_encode(['error' => 'Method Not Allowed']);
+                break;
         }
     }
 
@@ -144,6 +125,9 @@ class ScheduleChangeRequestAPI {
             } else {
                 throw new Exception("Database error: unable to insert change request");
             }
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
@@ -163,11 +147,7 @@ class ScheduleChangeRequestAPI {
             require_once __DIR__ . '/../../config/email.php';
             
             $mailer = new EmailService();
-            $mailer->sendEmail(
-                $user['email'], 
-                'Schedule Change Request', 
-                "Hello {$user['first_name']},\n\nA schedule change request has been submitted. Reason: {$reason}\n\nPlease log in to review and approve/reject."
-            );
+            $mailer->sendScheduleChangeNotification($user['email'], "Hello {$user['first_name']},\n\nA schedule change request has been submitted. Reason: {$reason}\n\nPlease log in to review and approve/reject.");
         }
     }
 
@@ -245,6 +225,9 @@ class ScheduleChangeRequestAPI {
             }
 
             echo json_encode($requests);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
@@ -323,12 +306,18 @@ class ScheduleChangeRequestAPI {
                 'status' => 'success', 
                 'message' => "Schedule change request {$status}"
             ]);
+        } catch (PDOException $e) {
+            http_response_code(500);
+            echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
         } catch (Exception $e) {
             http_response_code(500);
             echo json_encode(['error' => 'Internal Server Error', 'details' => $e->getMessage()]);
         }
     }
 }
+
+// Require Composer's autoloader
+require_once __DIR__ . '/../../vendor/autoload.php';
 
 // Handle the API request
 $scheduleChangeAPI = new ScheduleChangeRequestAPI();

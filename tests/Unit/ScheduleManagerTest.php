@@ -16,7 +16,7 @@ class ScheduleManagerTest extends TestCase {
         parent::setUp();
         $this->resetDatabase();
         $this->scheduleManager = new ScheduleManager();
-        $this->auth = new Authentication();
+        $this->auth = new \OnCallDutyPlanner\Classes\Authentication();
 
         // Create a test user
         $this->auth->register(

@@ -20,8 +20,13 @@
         "psr-4": {
             "OnCallDutyPlanner\\": "src/",
             "OnCallDutyPlanner\\Classes\\": "classes/",
-            "OnCallDutyPlanner\\Config\\": "src/Config/",
+            "OnCallDutyPlanner\\Database\\": "src/Database/",
             "OnCallDutyPlanner\\Scheduling\\": "classes/",
+            "OnCallDutyPlanner\\Tests\\": "tests/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
             "OnCallDutyPlanner\\Tests\\": "tests/"
         }
     },
