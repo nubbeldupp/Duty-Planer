@@ -1,7 +1,15 @@
 # On-Call Duty Planner
 
 ## Overview
-On-Call Duty Planner is a comprehensive web application designed to manage and streamline on-call schedules for database teams across multiple organizations.
+On-Call Duty Planner is a comprehensive web application designed to streamline and manage on-call schedules for database teams across various technologies including Oracle, Hana, MSSQL, and PostgreSQL.
+
+## Recent Changes
+
+### Docker Configuration Updates
+- Simplified Docker container setup
+- Updated nginx configuration to route PHP requests
+- Refined database connection handling
+- Modified backup volume to `/mnt/datadisk/backup`
 
 ## 🌟 Key Features
 
@@ -30,6 +38,15 @@ On-Call Duty Planner is a comprehensive web application designed to manage and s
 - MSSQL
 - PostgreSQL
 
+## Technology Stack
+
+- **Backend**: PHP 8.1+
+- **Database**: MySQL 8.0
+- **Containerization**: Docker Compose
+- **Email**: PHPMailer
+- **Authentication**: Custom implementation with Argon2 password hashing
+- **Dependency Management**: Composer
+
 ## 🚀 Technical Architecture
 
 ### Backend
@@ -57,32 +74,57 @@ On-Call Duty Planner is a comprehensive web application designed to manage and s
 - Comprehensive error handling
 - Audit logging
 
-## 📦 Installation
+## Prerequisites
 
-### Prerequisites
 - Docker
 - Docker Compose
-- PHP 8.1+
-- Composer
+- Minimum 2GB RAM
+- Network access to pull Docker images
+
+## 📦 Installation
 
 ### Steps
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/on-call-duty-planner.git
-   cd on-call-duty-planner
+   git clone https://github.com/nubbeldupp/Duty-Planer
+   cd Duty-Planer
    ```
 
-2. Copy environment configuration
+2. Start the application
    ```bash
-   cp .env.example .env
+   docker-compose up --build
    ```
 
-3. Configure environment variables in `.env`
+3. Access the application
+   - Web Application: `http://localhost`
+   - Database Backup Location: `/mnt/datadisk/backup`
 
-4. Build and start containers
-   ```bash
-   ./deploy.sh
-   ```
+## Configuration
+
+### Environment Variables
+- `DB_HOST`: Database host (default: `database`)
+- `DB_PORT`: Database port (default: `3306`)
+- `DB_NAME`: Database name (default: `on_call_duty_planner`)
+- `DB_USER`: Database user (default: `app_user`)
+- `DB_PASSWORD`: Database password
+
+### Backup Configuration
+- Backup frequency: Daily
+- Backup location: `/mnt/datadisk/backup`
+
+## Troubleshooting
+
+- Ensure Docker and Docker Compose are installed
+- Check container logs with `docker-compose logs`
+- Verify network connectivity
+- Confirm database credentials match in configuration files
+
+## Security
+
+- Passwords hashed using Argon2
+- Role-based access control
+- Secure database connection
+- Environment-specific configurations
 
 ## 🛠 Development
 
@@ -118,9 +160,9 @@ docker-compose exec web php artisan migrate
 ## 🤝 Contributing
 1. Fork the repository
 2. Create your feature branch
-3. Commit changes
+3. Commit your changes
 4. Push to the branch
-5. Create a pull request
+5. Create a Pull Request
 
 ## 📄 License
 MIT License
