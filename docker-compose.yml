@@ -16,6 +16,8 @@ services:
       - DB_NAME=on_call_duty_planner
       - DB_USER=app_user
       - DB_PASSWORD=secure_password
+    networks:
+      - app_network
 
   database:
     image: mysql:8.0
@@ -29,11 +31,8 @@ services:
       - MYSQL_ROOT_PASSWORD=root_secure_password
     ports:
       - "3306:3306"
-
-  redis:
-    image: redis:alpine
-    volumes:
-      - redis_data:/data
+    networks:
+      - app_network
 
   backup:
     image: fradelg/mysql-cron-backup
@@ -49,11 +48,20 @@ services:
       - DB_USER=app_user
       - DB_PASS=secure_password
       - DB_SERVER=database
+    networks:
+      - app_network
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    networks:
+      - app_network
 
 volumes:
   mysql_data:
   redis_data:
 
 networks:
-  default:
+  app_network:
     driver: bridge
