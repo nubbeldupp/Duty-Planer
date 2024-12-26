@@ -17,7 +17,9 @@ services:
       - DB_USER=app_user
       - DB_PASSWORD=secure_password
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - web
 
   database:
     image: mysql:8.0
@@ -32,7 +34,10 @@ services:
     ports:
       - "3306:3306"
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - mysql
+          - database
 
   backup:
     image: fradelg/mysql-cron-backup
@@ -49,14 +54,18 @@ services:
       - DB_PASS=secure_password
       - DB_SERVER=database
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - backup
 
   redis:
     image: redis:alpine
     volumes:
       - redis_data:/data
     networks:
-      - app_network
+      app_network:
+        aliases:
+          - redis
 
 volumes:
   mysql_data:
@@ -65,3 +74,7 @@ volumes:
 networks:
   app_network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+          gateway: 172.25.0.1
