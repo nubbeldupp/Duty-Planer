@@ -3,6 +3,7 @@ namespace OnCallDutyPlanner\Tests;
 
 use PHPUnit\Framework\TestCase as BaseTestCase;
 use OnCallDutyPlanner\Config\DatabaseConnection;
+use PDO;
 
 abstract class TestCase extends BaseTestCase {
     protected $db;

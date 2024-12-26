@@ -3,6 +3,7 @@ namespace OnCallDutyPlanner\Tests\Unit;
 
 use OnCallDutyPlanner\Tests\TestCase;
 use OnCallDutyPlanner\Classes\Authentication;
+use PDOException;
 
 class AuthenticationTest extends TestCase {
     private $auth;

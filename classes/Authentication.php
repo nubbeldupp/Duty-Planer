@@ -1,5 +1,10 @@
 <?php
-require_once __DIR__ . '/../config/database.php';
+namespace OnCallDutyPlanner\Classes;
+
+use OnCallDutyPlanner\Config\DatabaseConnection;
+use Exception;
+use PDO;
+use PDOException;
 
 class Authentication {
     private $db;
@@ -15,7 +20,7 @@ class Authentication {
         }
 
         // Hash password
-        $password_hash = password_hash($password, PASSWORD_HASH_ALGO);
+        $password_hash = password_hash($password, PASSWORD_ARGON2ID);
 
         // Prepare SQL
         $sql = "INSERT INTO users (username, email, password_hash, first_name, last_name, role) 
@@ -32,9 +37,14 @@ class Authentication {
 
         try {
             $conn = $this->db->getConnection();
-            $stmt = $this->db->executeQuery($sql, $params);
-            return $stmt !== false;
-        } catch (Exception $e) {
+            $stmt = $conn->prepare($sql);
+            $result = $stmt->execute($params);
+            return $result;
+        } catch (PDOException $e) {
+            // Check for duplicate entry
+            if ($e->getCode() == '23000') {
+                return false;
+            }
             error_log("Registration Error: " . $e->getMessage());
             return false;
         }

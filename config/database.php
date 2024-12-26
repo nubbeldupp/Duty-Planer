@@ -1,4 +1,9 @@
 <?php
+namespace OnCallDutyPlanner\Config;
+
+use PDO;
+use PDOException;
+
 class DatabaseConnection {
     private $conn;
     private $host = 'database';

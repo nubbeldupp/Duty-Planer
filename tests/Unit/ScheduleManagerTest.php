@@ -4,6 +4,7 @@ namespace OnCallDutyPlanner\Tests\Unit;
 use OnCallDutyPlanner\Tests\TestCase;
 use OnCallDutyPlanner\Scheduling\ScheduleManager;
 use OnCallDutyPlanner\Classes\Authentication;
+use PDO;
 
 class ScheduleManagerTest extends TestCase {
     private $scheduleManager;
@@ -31,7 +32,7 @@ class ScheduleManagerTest extends TestCase {
         $conn = $this->db->getConnection();
         $stmt = $conn->prepare("SELECT user_id FROM users WHERE username = 'scheduleuser'");
         $stmt->execute();
-        $user = $stmt->fetch(\PDO::FETCH_ASSOC);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
         $this->userId = $user['user_id'];
 
         // Create a test team

@@ -20,6 +20,7 @@
         "psr-4": {
             "OnCallDutyPlanner\\": "src/",
             "OnCallDutyPlanner\\Classes\\": "classes/",
+            "OnCallDutyPlanner\\Config\\": "config/",
             "OnCallDutyPlanner\\Scheduling\\": "classes/",
             "OnCallDutyPlanner\\Tests\\": "tests/"
         }
