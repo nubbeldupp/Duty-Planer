@@ -35,7 +35,7 @@ On-Call Duty Planner is a comprehensive web application designed to manage and s
 ### Backend
 - Language: PHP 8.1+
 - Framework: Custom MVC Architecture
-- Database: Oracle with OCI8
+- Database: MySQL with PDO
 - Authentication: JWT-based
 
 ### Frontend

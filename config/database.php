@@ -1,27 +1,26 @@
 <?php
 class DatabaseConnection {
     private $conn;
-    private $host = 'localhost';
+    private $host = 'database';
     private $db_name = 'on_call_duty_planner';
-    private $username = 'admin_user';
-    private $password = 'secure_password_here';
+    private $username = 'app_user';
+    private $password = 'secure_password';
+    private $port = 3306;
 
     public function getConnection() {
         $this->conn = null;
 
         try {
-            // Establish OCI8 connection
-            $this->conn = oci_connect(
-                $this->username, 
-                $this->password, 
-                "(DESCRIPTION=(ADDRESS=(PROTOCOL=TCP)(HOST={$this->host})(PORT=1521))(CONNECT_DATA=(SERVICE_NAME={$this->db_name})))"
-            );
+            // Establish MySQL PDO connection
+            $dsn = "mysql:host={$this->host};port={$this->port};dbname={$this->db_name};charset=utf8mb4";
+            $options = [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+                PDO::ATTR_EMULATE_PREPARES => false,
+            ];
 
-            if (!$this->conn) {
-                $e = oci_error();
-                throw new Exception("Database connection failed: " . $e['message']);
-            }
-        } catch (Exception $exception) {
+            $this->conn = new PDO($dsn, $this->username, $this->password, $options);
+        } catch (PDOException $exception) {
             error_log("Connection Error: " . $exception->getMessage());
             die("Could not connect to the database. Please try again later.");
         }
@@ -30,27 +29,19 @@ class DatabaseConnection {
     }
 
     public function closeConnection() {
-        if ($this->conn) {
-            oci_close($this->conn);
-        }
+        $this->conn = null;
     }
 
     // Utility method for executing prepared statements
     public function executeQuery($sql, $params = []) {
-        $stmt = oci_parse($this->conn, $sql);
-        
-        // Bind parameters
-        foreach ($params as $key => $value) {
-            oci_bind_by_name($stmt, ":$key", $params[$key]);
-        }
-
-        if (!oci_execute($stmt)) {
-            $e = oci_error($stmt);
-            error_log("Query Error: " . $e['message']);
+        try {
+            $stmt = $this->conn->prepare($sql);
+            $stmt->execute($params);
+            return $stmt;
+        } catch (PDOException $e) {
+            error_log("Query Error: " . $e->getMessage());
             return false;
         }
-
-        return $stmt;
     }
 }
 

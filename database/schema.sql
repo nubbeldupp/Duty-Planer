@@ -1,27 +1,27 @@
 -- Users Table
 CREATE TABLE users (
-    user_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    username VARCHAR2(50) UNIQUE NOT NULL,
-    email VARCHAR2(100) UNIQUE NOT NULL,
-    password_hash VARCHAR2(255) NOT NULL,
-    first_name VARCHAR2(50) NOT NULL,
-    last_name VARCHAR2(50) NOT NULL,
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    first_name VARCHAR(50) NOT NULL,
+    last_name VARCHAR(50) NOT NULL,
     role ENUM('ADMIN', 'TEAM_LEAD', 'USER') NOT NULL,
-    created_at TIMESTAMP DEFAULT SYSTIMESTAMP,
-    last_login TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NULL
 );
 
 -- Database Teams Table
 CREATE TABLE database_teams (
-    team_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    team_name VARCHAR2(50) UNIQUE NOT NULL,
-    description VARCHAR2(255)
+    team_id INT AUTO_INCREMENT PRIMARY KEY,
+    team_name VARCHAR(50) UNIQUE NOT NULL,
+    description VARCHAR(255)
 );
 
 -- User-Team Mapping Table (Many-to-Many Relationship)
 CREATE TABLE user_teams (
-    user_id NUMBER,
-    team_id NUMBER,
+    user_id INT,
+    team_id INT,
     PRIMARY KEY (user_id, team_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (team_id) REFERENCES database_teams(team_id)
@@ -29,15 +29,15 @@ CREATE TABLE user_teams (
 
 -- On-Call Duty Schedule Table
 CREATE TABLE on_call_schedules (
-    schedule_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    user_id NUMBER NOT NULL,
-    team_id NUMBER NOT NULL,
-    start_datetime TIMESTAMP NOT NULL,
-    end_datetime TIMESTAMP NOT NULL,
+    schedule_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    team_id INT NOT NULL,
+    start_datetime DATETIME NOT NULL,
+    end_datetime DATETIME NOT NULL,
     duty_type ENUM('PERMANENT', 'OCCASIONALLY') NOT NULL,
     status ENUM('ACTIVE', 'PENDING', 'INACTIVE') DEFAULT 'ACTIVE',
-    created_by NUMBER NOT NULL,
-    created_at TIMESTAMP DEFAULT SYSTIMESTAMP,
+    created_by INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (team_id) REFERENCES database_teams(team_id),
     FOREIGN KEY (created_by) REFERENCES users(user_id)
@@ -45,15 +45,15 @@ CREATE TABLE on_call_schedules (
 
 -- Schedule Change Requests Table
 CREATE TABLE schedule_change_requests (
-    request_id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    original_schedule_id NUMBER NOT NULL,
-    requested_user_id NUMBER NOT NULL,
-    target_user_id NUMBER NOT NULL,
-    new_start_datetime TIMESTAMP,
-    new_end_datetime TIMESTAMP,
+    request_id INT AUTO_INCREMENT PRIMARY KEY,
+    original_schedule_id INT NOT NULL,
+    requested_user_id INT NOT NULL,
+    target_user_id INT NOT NULL,
+    new_start_datetime DATETIME,
+    new_end_datetime DATETIME,
     status ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
-    request_reason VARCHAR2(255),
-    requested_at TIMESTAMP DEFAULT SYSTIMESTAMP,
+    request_reason VARCHAR(255),
+    requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (original_schedule_id) REFERENCES on_call_schedules(schedule_id),
     FOREIGN KEY (requested_user_id) REFERENCES users(user_id),
     FOREIGN KEY (target_user_id) REFERENCES users(user_id)

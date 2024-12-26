@@ -12,20 +12,23 @@ services:
     environment:
       - APP_ENV=production
       - DB_HOST=database
-      - DB_PORT=5432
+      - DB_PORT=3306
       - DB_NAME=on_call_duty_planner
       - DB_USER=app_user
       - DB_PASSWORD=secure_password
 
   database:
-    image: postgres:13-alpine
+    image: mysql:8.0
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
       - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     environment:
-      - POSTGRES_DB=on_call_duty_planner
-      - POSTGRES_USER=app_user
-      - POSTGRES_PASSWORD=secure_password
+      - MYSQL_DATABASE=on_call_duty_planner
+      - MYSQL_USER=app_user
+      - MYSQL_PASSWORD=secure_password
+      - MYSQL_ROOT_PASSWORD=root_secure_password
+    ports:
+      - "3306:3306"
 
   redis:
     image: redis:alpine
@@ -33,24 +36,22 @@ services:
       - redis_data:/data
 
   backup:
-    image: prodrigestivill/postgres-backup-local
+    image: fradelg/mysql-cron-backup
     restart: always
     volumes:
-      - /var/opt/pgbackups:/backups
+      - /var/opt/mysqlbackups:/backups
     depends_on:
       - database
     environment:
-      - POSTGRES_HOST=database
-      - POSTGRES_DB=on_call_duty_planner
-      - POSTGRES_USER=app_user
-      - POSTGRES_PASSWORD=secure_password
-      - SCHEDULE=@daily
-      - BACKUP_KEEP_DAYS=7
-      - BACKUP_KEEP_WEEKS=4
-      - BACKUP_KEEP_MONTHS=6
+      - DB_DUMP_TARGET=/backups
+      - DB_DUMP_FREQ=1440
+      - DB_DUMP_BEGIN=2300
+      - DB_USER=app_user
+      - DB_PASS=secure_password
+      - DB_SERVER=database
 
 volumes:
-  postgres_data:
+  mysql_data:
   redis_data:
 
 networks:

@@ -1,12 +1,12 @@
-# Use official PHP image with Oracle support
+# Use official PHP image with MySQL support
 FROM php:8.1-fpm-alpine
 
-# Install system dependencies and Oracle OCI8 extension
+# Install system dependencies and MySQL extension
 RUN apk add --no-cache \
-    postgresql-dev \
+    mysql-client \
     libzip-dev \
     unzip \
-    && docker-php-ext-install pdo pdo_pgsql zip
+    && docker-php-ext-install pdo pdo_mysql mysqli zip
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
