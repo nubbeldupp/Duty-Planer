@@ -1,0 +1,102 @@
+:root {
+    --white: #FFFFFFff;
+    --midnight-green: #064B57ff;
+    --khaki: #BBA389ff;
+    --yellow-green: #B5CC32ff;
+    --ash-gray: #B2BAB5ff;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    line-height: 1.6;
+    background-color: var(--white);
+    color: var(--midnight-green);
+}
+
+.app-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background-color: var(--midnight-green);
+    color: var(--white);
+    padding: 15px 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+}
+
+.nav-links li {
+    margin-left: 20px;
+}
+
+.nav-links a {
+    color: var(--white);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+    color: var(--khaki);
+}
+
+.landing {
+    text-align: center;
+    padding: 50px 0;
+}
+
+.cta-buttons {
+    margin-top: 30px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-primary {
+    background-color: var(--yellow-green);
+    color: var(--midnight-green);
+}
+
+.btn-secondary {
+    background-color: var(--khaki);
+    color: var(--white);
+}
+
+#calendar {
+    margin-top: 30px;
+    background-color: var(--white);
+    border: 1px solid var(--ash-gray);
+    border-radius: 5px;
+    padding: 20px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px 0;
+    background-color: var(--ash-gray);
+    color: var(--midnight-green);
+}
