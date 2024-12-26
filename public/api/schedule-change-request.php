@@ -117,8 +117,8 @@ class ScheduleChangeRequestAPI {
                     :original_schedule_id, 
                     :requested_user_id, 
                     :target_user_id, 
-                    TO_TIMESTAMP(:new_start, 'YYYY-MM-DD\"T\"HH24:MI:SS'),
-                    TO_TIMESTAMP(:new_end, 'YYYY-MM-DD\"T\"HH24:MI:SS'),
+                    :new_start,
+                    :new_end,
                     :request_reason
                 )
             ";
@@ -164,9 +164,9 @@ class ScheduleChangeRequestAPI {
             
             $mailer = new EmailService();
             $mailer->sendEmail(
-                $user['EMAIL'], 
+                $user['email'], 
                 'Schedule Change Request', 
-                "Hello {$user['FIRST_NAME']},\n\nA schedule change request has been submitted. Reason: {$reason}\n\nPlease log in to review and approve/reject."
+                "Hello {$user['first_name']},\n\nA schedule change request has been submitted. Reason: {$reason}\n\nPlease log in to review and approve/reject."
             );
         }
     }
@@ -182,8 +182,8 @@ class ScheduleChangeRequestAPI {
             if ($user_role === 'ADMIN') {
                 $sql = "
                     SELECT scr.*, 
-                           u1.first_name || ' ' || u1.last_name AS requester_name,
-                           u2.first_name || ' ' || u2.last_name AS target_name,
+                           CONCAT(u1.first_name, ' ', u1.last_name) AS requester_name,
+                           CONCAT(u2.first_name, ' ', u2.last_name) AS target_name,
                            os.start_datetime AS original_start,
                            os.end_datetime AS original_end
                     FROM schedule_change_requests scr
@@ -195,8 +195,8 @@ class ScheduleChangeRequestAPI {
             } elseif ($user_role === 'TEAM_LEAD') {
                 $sql = "
                     SELECT scr.*, 
-                           u1.first_name || ' ' || u1.last_name AS requester_name,
-                           u2.first_name || ' ' || u2.last_name AS target_name,
+                           CONCAT(u1.first_name, ' ', u1.last_name) AS requester_name,
+                           CONCAT(u2.first_name, ' ', u2.last_name) AS target_name,
                            os.start_datetime AS original_start,
                            os.end_datetime AS original_end
                     FROM schedule_change_requests scr
@@ -207,18 +207,17 @@ class ScheduleChangeRequestAPI {
                     WHERE scr.status = 'PENDING' AND ut.user_id = :user_id
                 ";
             } else {
-                // Regular users can see requests targeting them
                 $sql = "
                     SELECT scr.*, 
-                           u1.first_name || ' ' || u1.last_name AS requester_name,
-                           u2.first_name || ' ' || u2.last_name AS target_name,
+                           CONCAT(u1.first_name, ' ', u1.last_name) AS requester_name,
+                           CONCAT(u2.first_name, ' ', u2.last_name) AS target_name,
                            os.start_datetime AS original_start,
                            os.end_datetime AS original_end
                     FROM schedule_change_requests scr
                     JOIN users u1 ON scr.requested_user_id = u1.user_id
                     JOIN users u2 ON scr.target_user_id = u2.user_id
                     JOIN on_call_schedules os ON scr.original_schedule_id = os.schedule_id
-                    WHERE scr.status = 'PENDING' AND scr.target_user_id = :user_id
+                    WHERE scr.target_user_id = :user_id
                 ";
             }
 
@@ -233,14 +232,15 @@ class ScheduleChangeRequestAPI {
             $requests = [];
             while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $requests[] = [
-                    'request_id' => $row['REQUEST_ID'],
-                    'requester_name' => $row['REQUESTER_NAME'],
-                    'target_name' => $row['TARGET_NAME'],
-                    'original_start' => $row['ORIGINAL_START'],
-                    'original_end' => $row['ORIGINAL_END'],
-                    'new_start' => $row['NEW_START_DATETIME'],
-                    'new_end' => $row['NEW_END_DATETIME'],
-                    'reason' => $row['REQUEST_REASON']
+                    'request_id' => $row['request_id'],
+                    'requester_name' => $row['requester_name'],
+                    'target_name' => $row['target_name'],
+                    'new_start' => $row['new_start_datetime'],
+                    'new_end' => $row['new_end_datetime'],
+                    'original_start' => $row['original_start'],
+                    'original_end' => $row['original_end'],
+                    'status' => $row['status'],
+                    'reason' => $row['request_reason']
                 ];
             }
 
