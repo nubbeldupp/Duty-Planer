@@ -6,6 +6,7 @@ RUN apk add --no-cache \
     mysql-client \
     libzip-dev \
     unzip \
+    netcat-openbsd \
     && docker-php-ext-install pdo pdo_mysql mysqli zip
 
 # Install Composer
