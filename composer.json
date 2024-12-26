@@ -5,7 +5,9 @@
     "require": {
         "php": "^8.1",
         "phpmailer/phpmailer": "^6.7",
-        "ext-oci8": "*",
+        "ext-pdo": "*",
+        "ext-pdo_mysql": "*",
+        "ext-mysqli": "*",
         "firebase/php-jwt": "^6.4",
         "respect/validation": "^2.3"
     },

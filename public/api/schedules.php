@@ -71,24 +71,24 @@ class ScheduleAPI {
                         WHERE s.user_id = :user_id AND s.status = 'ACTIVE'";
             }
 
-            $stmt = oci_parse($conn, $sql);
+            $stmt = $conn->prepare($sql);
             
             if ($user_role !== 'ADMIN') {
-                oci_bind_by_name($stmt, ":user_id", $user_id);
+                $stmt->execute([':user_id' => $user_id]);
+            } else {
+                $stmt->execute();
             }
 
-            oci_execute($stmt);
-
             $schedules = [];
-            while ($row = oci_fetch_assoc($stmt)) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $schedules[] = [
-                    'id' => $row['SCHEDULE_ID'],
-                    'title' => $row['TITLE'] . ' (' . $row['TEAM'] . ')',
-                    'start' => $row['START'],
-                    'end' => $row['END'],
+                    'id' => $row['schedule_id'],
+                    'title' => $row['first_name'] . ' ' . $row['last_name'] . ' (' . $row['team_name'] . ')',
+                    'start' => $row['start_datetime'],
+                    'end' => $row['end_datetime'],
                     'extendedProps' => [
-                        'team' => $row['TEAM'],
-                        'dutyType' => $row['DUTY_TYPE']
+                        'team' => $row['team_name'],
+                        'dutyType' => $row['duty_type']
                     ]
                 ];
             }

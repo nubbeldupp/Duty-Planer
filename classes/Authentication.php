@@ -47,33 +47,28 @@ class Authentication {
         
         try {
             $conn = $this->db->getConnection();
-            $stmt = oci_parse($conn, $sql);
-            oci_bind_by_name($stmt, ":username", $username);
-            
-            if (!oci_execute($stmt)) {
-                throw new Exception("Login query failed");
-            }
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([':username' => $username]);
 
-            $user = oci_fetch_assoc($stmt);
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!$user || !password_verify($password, $user['PASSWORD_HASH'])) {
+            if (!$user || !password_verify($password, $user['password_hash'])) {
                 return false;
             }
 
             // Update last login
-            $update_sql = "UPDATE users SET last_login = SYSTIMESTAMP WHERE username = :username";
-            $update_stmt = oci_parse($conn, $update_sql);
-            oci_bind_by_name($update_stmt, ":username", $username);
-            oci_execute($update_stmt);
+            $update_sql = "UPDATE users SET last_login = NOW() WHERE username = :username";
+            $update_stmt = $conn->prepare($update_sql);
+            $update_stmt->execute([':username' => $username]);
 
             // Start session
             session_start();
-            $_SESSION['user_id'] = $user['USER_ID'];
-            $_SESSION['username'] = $user['USERNAME'];
-            $_SESSION['role'] = $user['ROLE'];
+            $_SESSION['user_id'] = $user['user_id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role'] = $user['role'];
 
             return true;
-        } catch (Exception $e) {
+        } catch (PDOException $e) {
             error_log("Login Error: " . $e->getMessage());
             return false;
         }

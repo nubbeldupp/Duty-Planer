@@ -36,15 +36,14 @@ class UserPermissionsAPI {
                 WHERE ut.user_id = :user_id
             ";
             
-            $teams_stmt = oci_parse($conn, $teams_sql);
-            oci_bind_by_name($teams_stmt, ":user_id", $user_id);
-            oci_execute($teams_stmt);
+            $stmt = $conn->prepare($teams_sql);
+            $stmt->execute([':user_id' => $user_id]);
 
             $user_teams = [];
-            while ($row = oci_fetch_assoc($teams_stmt)) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $user_teams[] = [
-                    'team_id' => $row['TEAM_ID'],
-                    'team_name' => $row['TEAM_NAME']
+                    'team_id' => $row['team_id'],
+                    'team_name' => $row['team_name']
                 ];
             }
 

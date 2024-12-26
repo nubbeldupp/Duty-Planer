@@ -92,14 +92,15 @@ class ScheduleChangeRequestAPI {
                 JOIN user_teams ut ON s.team_id = ut.team_id
                 WHERE s.schedule_id = :schedule_id AND ut.user_id = :requester_id
             ";
-            $perm_stmt = oci_parse($conn, $permission_check_sql);
-            oci_bind_by_name($perm_stmt, ":schedule_id", $original_schedule_id);
-            oci_bind_by_name($perm_stmt, ":requester_id", $requester_id);
-            oci_execute($perm_stmt);
-            
-            if (!oci_fetch($perm_stmt)) {
+            $stmt = $conn->prepare($permission_check_sql);
+            $stmt->execute([
+                ':schedule_id' => $original_schedule_id,
+                ':requester_id' => $requester_id
+            ]);
+
+            if ($stmt->rowCount() === 0) {
                 http_response_code(403);
-                echo json_encode(['error' => 'Not authorized to request this schedule change']);
+                echo json_encode(['error' => 'Insufficient permissions']);
                 exit;
             }
 
@@ -122,17 +123,17 @@ class ScheduleChangeRequestAPI {
                 )
             ";
             
-            $stmt = oci_parse($conn, $sql);
-            oci_bind_by_name($stmt, ":original_schedule_id", $original_schedule_id);
-            oci_bind_by_name($stmt, ":requested_user_id", $requester_id);
-            oci_bind_by_name($stmt, ":target_user_id", $target_user_id);
-            oci_bind_by_name($stmt, ":new_start", $new_start);
-            oci_bind_by_name($stmt, ":new_end", $new_end);
-            oci_bind_by_name($stmt, ":request_reason", $reason);
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                ':original_schedule_id' => $original_schedule_id,
+                ':requested_user_id' => $requester_id,
+                ':target_user_id' => $target_user_id,
+                ':new_start' => $new_start,
+                ':new_end' => $new_end,
+                ':request_reason' => $reason
+            ]);
 
-            $result = oci_execute($stmt);
-
-            if ($result) {
+            if ($stmt->rowCount() > 0) {
                 // Send notification email to target user
                 $this->sendChangeRequestNotification($target_user_id, $reason);
 
@@ -141,8 +142,7 @@ class ScheduleChangeRequestAPI {
                     'message' => 'Schedule change request submitted'
                 ]);
             } else {
-                $e = oci_error($stmt);
-                throw new Exception("Database error: " . $e['message']);
+                throw new Exception("Database error: unable to insert change request");
             }
         } catch (Exception $e) {
             http_response_code(500);
@@ -154,10 +154,9 @@ class ScheduleChangeRequestAPI {
         // Fetch target user's email
         $sql = "SELECT email, first_name FROM users WHERE user_id = :user_id";
         $conn = $this->db->getConnection();
-        $stmt = oci_parse($conn, $sql);
-        oci_bind_by_name($stmt, ":user_id", $target_user_id);
-        oci_execute($stmt);
-        $user = oci_fetch_assoc($stmt);
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([':user_id' => $target_user_id]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($user) {
             // Use PHPMailer to send email (configuration in a separate file)
@@ -223,16 +222,16 @@ class ScheduleChangeRequestAPI {
                 ";
             }
 
-            $stmt = oci_parse($conn, $sql);
+            $stmt = $conn->prepare($sql);
             
             if ($user_role !== 'ADMIN') {
-                oci_bind_by_name($stmt, ":user_id", $user_id);
+                $stmt->bindParam(':user_id', $user_id);
             }
 
-            oci_execute($stmt);
+            $stmt->execute();
 
             $requests = [];
-            while ($row = oci_fetch_assoc($stmt)) {
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                 $requests[] = [
                     'request_id' => $row['REQUEST_ID'],
                     'requester_name' => $row['REQUESTER_NAME'],
@@ -268,12 +267,13 @@ class ScheduleChangeRequestAPI {
                 FROM schedule_change_requests scr
                 WHERE scr.request_id = :request_id AND scr.target_user_id = :user_id
             ";
-            $perm_stmt = oci_parse($conn, $permission_check_sql);
-            oci_bind_by_name($perm_stmt, ":request_id", $request_id);
-            oci_bind_by_name($perm_stmt, ":user_id", $user_id);
-            oci_execute($perm_stmt);
-            
-            if (!oci_fetch($perm_stmt)) {
+            $stmt = $conn->prepare($permission_check_sql);
+            $stmt->execute([
+                ':request_id' => $request_id,
+                ':user_id' => $user_id
+            ]);
+
+            if ($stmt->rowCount() === 0) {
                 http_response_code(403);
                 echo json_encode(['error' => 'Not authorized to approve/reject this request']);
                 exit;
@@ -286,13 +286,13 @@ class ScheduleChangeRequestAPI {
                 WHERE request_id = :request_id
             ";
             
-            $stmt = oci_parse($conn, $sql);
-            oci_bind_by_name($stmt, ":status", $status);
-            oci_bind_by_name($stmt, ":request_id", $request_id);
+            $stmt = $conn->prepare($sql);
+            $stmt->execute([
+                ':status' => $status,
+                ':request_id' => $request_id
+            ]);
 
-            $result = oci_execute($stmt);
-
-            if ($result && $status === 'APPROVED') {
+            if ($stmt->rowCount() > 0 && $status === 'APPROVED') {
                 // If approved, update the actual schedule
                 $update_schedule_sql = "
                     UPDATE on_call_schedules os
@@ -315,9 +315,8 @@ class ScheduleChangeRequestAPI {
                     )
                 ";
                 
-                $update_stmt = oci_parse($conn, $update_schedule_sql);
-                oci_bind_by_name($update_stmt, ":request_id", $request_id);
-                oci_execute($update_stmt);
+                $update_stmt = $conn->prepare($update_schedule_sql);
+                $update_stmt->execute([':request_id' => $request_id]);
             }
 
             echo json_encode([
